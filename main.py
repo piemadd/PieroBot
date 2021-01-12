@@ -51,7 +51,7 @@ async def shellTest(ctx):
 async def pipInstall(ctx, package):
 	if "aiohttp" in package.lower() or "pynacl" in package.lower():
 		return
-	p = Popen("pip install " + package, stdout=PIPE, close_fds=True, shell=True)
+	p = Popen("pip install " + package.split()[0], stdout=PIPE, close_fds=True, shell=True)
 	lines = []
 	msg = await ctx.send('\u200b')
 	while True:
@@ -64,7 +64,7 @@ async def pipInstall(ctx, package):
 				lines.remove(lines[0])
 		else:
 			try:
-				sending = "Done\n" + sending
+				sending = "Done installing " + package.split()[0] + "\n" + sending
 			except:
 				sending = "Done"
 			await msg.edit(content=sending)
@@ -77,13 +77,9 @@ async def pipInstall(ctx, package):
 
 @bot.command()
 async def pipUninstall(ctx, package):
-	if author.id not == 231628302152892427:
-		print("nope")
-	if author.id not == 231628302152892427:
-		print("yep")
 	if "aiohttp" in package.lower() or "pynacl" in package.lower():
 		return
-	p = Popen("pip uninstall -y " + package, stdout=PIPE, close_fds=True, shell=True)
+	p = Popen("pip uninstall -y " + package.split()[0], stdout=PIPE, close_fds=True, shell=True)
 	lines = []
 	msg = await ctx.send('\u200b')
 	while True:
