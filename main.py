@@ -1,17 +1,14 @@
 import discord
 from discord.ext import commands
-import random
-import os
-
-description = '''An example bot to showcase the discord.ext.commands extension
-module.
-
-There are a number of utility commands being showcased here.'''
+import random, os, pieroExtras
+from subprocess import Popen, PIPE
 
 intents = discord.Intents.default()
 intents.members = True
 
-bot = commands.Bot(command_prefix='pi$', description=description, intents=intents)
+bot = commands.Bot(command_prefix='pi$', description="Bot or whateva", intents=intents)
+
+bot.load_extension("cogs.serverManagement")
 
 @bot.event
 async def on_ready():
@@ -19,26 +16,6 @@ async def on_ready():
 	print(bot.user.name)
 	print(bot.user.id)
 	print('------')
-
-@bot.command()
-async def add(ctx, left: int, right: int):
-	await ctx.send(left + right)
-
-@bot.command()
-async def roll(ctx, dice: str):
-	try:
-		rolls, limit = map(int, dice.split('d'))
-	except Exception:
-		await ctx.send('Format has to be in NdN!')
-		return
-
-	result = ', '.join(str(random.randint(1, limit)) for r in range(rolls))
-	await ctx.send(result)
-
-@bot.command(description='For when you wanna settle the score some other way')
-async def choose(ctx, *choices: str):
-	"""Chooses between multiple choices."""
-	await ctx.send(random.choice(choices))
 
 @bot.command()
 async def repeat(ctx, times: int, content='repeating...'):
@@ -49,12 +26,78 @@ async def repeat(ctx, times: int, content='repeating...'):
 async def joined(ctx, member: discord.Member):
 	await ctx.send('{0.name} joined in {0.joined_at}'.format(member))
 
-@bot.group()
-async def cool(ctx):
-	if ctx.invoked_subcommand is None:
-		await ctx.send('No, {0.subcommand_passed} is not cool'.format(ctx))
+@bot.command()
+async def shellTest(ctx):
+	p = Popen("bash yourprogram.sh", stdout=PIPE, close_fds=True, shell=True)
+	lines = []
+	msg = await ctx.send('\u200b')
+	while True:
+		line = p.stdout.readline().strip().decode("utf-8")[0:100]
+		if line:
+			lines.append(str(line))
+			if len(lines) > 10:
+				lines.remove(lines[0])
+		else:
+			sending = "Done\n" + sending
+			await msg.edit(content=sending)
+			break
+		sending = ""
+		for i in lines:
+			sending = sending + i + "\n"
+		sending = '```' + sending + '```'
+		await msg.edit(content=sending)
 
-@cool.command(name='bot')
-async def _bot(ctx):
-	await ctx.send('Yes, the bot is cool.')
+@bot.command()
+async def pipInstall(ctx, package):
+	p = Popen("pip install " + package, stdout=PIPE, close_fds=True, shell=True)
+	lines = []
+	msg = await ctx.send('\u200b')
+	while True:
+		line = p.stdout.readline().strip().decode("utf-8")
+		if line:
+			lines.append(str(line))
+			while len(line) > 125:
+				line = line[125:]
+			if len(lines) > 10:
+				lines.remove(lines[0])
+		else:
+			try:
+				sending = "Done\n" + sending
+			except:
+				sending = "Done"
+			await msg.edit(content=sending)
+			break
+		sending = ""
+		for i in lines:
+			sending = sending + i + "\n"
+		sending = '```' + sending + '```'
+		await msg.edit(content=sending)
+
+@bot.command()
+async def pipUninstall(ctx, package):
+	p = Popen("pip uninstall -y " + package, stdout=PIPE, close_fds=True, shell=True)
+	lines = []
+	msg = await ctx.send('\u200b')
+	while True:
+		line = p.stdout.readline().strip().decode("utf-8")
+		if line:
+			lines.append(str(line))
+			while len(line) > 125:
+				line = line[125:]
+			if len(lines) > 10:
+				lines.remove(lines[0])
+		else:
+			try:
+				sending = "Done\n" + sending
+			except:
+				sending = "Package " + package + " does not exist!"
+			await msg.edit(content=sending)
+			break
+		sending = ""
+		for i in lines:
+			sending = sending + i + "\n"
+		sending = '```' + sending + '```'
+		print(sending)
+		await msg.edit(content=sending)
+
 bot.run(os.getenv("DISCORD_TOKEN"))
