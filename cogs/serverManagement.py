@@ -6,7 +6,7 @@ class serverManagement(commands.Cog):
 
     @commands.command(pass_context=True)
     async def acommand(self, ctx):
-       await self.bot.say("Stuff")        
+       await ctx.send("Stuff")        
 
 def setup(bot):
     bot.add_cog(serverManagement(bot))
